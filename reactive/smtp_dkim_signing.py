@@ -60,7 +60,7 @@ def config_changed() -> None:
 
 
 @reactive.when("config.changed.log_retention")
-def update_logrotate(logrotate_conf_path="/etc/logrotate.d/rsyslog") -> None:
+def update_logrotate(logrotate_conf_path: str = "/etc/logrotate.d/rsyslog") -> None:
     reactive.clear_flag("smtp-dkim-signing.active")
     status.maintenance("Updating log retention / rotation configs")
 
@@ -75,7 +75,7 @@ def update_logrotate(logrotate_conf_path="/etc/logrotate.d/rsyslog") -> None:
 @reactive.when("smtp-dkim-signing.installed")
 @reactive.when_not("smtp-dkim-signing.configured")
 def configure_smtp_dkim_signing(
-    dkim_conf_path=OPENDKIM_CONF_PATH, dkim_keys_dir=OPENDKIM_KEYS_PATH
+    dkim_conf_path: str = OPENDKIM_CONF_PATH, dkim_keys_dir: str = OPENDKIM_KEYS_PATH
 ) -> None:
     status.maintenance("Setting up SMTP DKIM Signing")
     reactive.clear_flag("smtp-dkim-signing.active")
@@ -166,7 +166,7 @@ def milter_notify() -> None:
 
 @reactive.when("smtp-dkim-signing.configured")
 @reactive.when_not("smtp-dkim-signing.active")
-def set_active(version_file="version") -> None:
+def set_active(version_file: str = "version") -> None:
     revision = ""
     if os.path.exists(version_file):
         with open(version_file, encoding="utf-8") as f:
@@ -183,7 +183,7 @@ def set_active(version_file="version") -> None:
     reactive.set_flag("smtp-dkim-signing.active")
 
 
-def _write_file(source, dest_path, perms=0o644, owner=None, group=None) -> bool:
+def _write_file(source: str, dest_path: str) -> bool:
     """Write file only on changes and return True if changes written."""
     # Compare and only write out file on change.
     dest = ""
@@ -198,17 +198,15 @@ def _write_file(source, dest_path, perms=0o644, owner=None, group=None) -> bool:
     except FileNotFoundError:
         pass
 
-    if owner is None:
-        owner = pwd.getpwuid(os.getuid()).pw_name
-    if group is None:
-        group = grp.getgrgid(os.getgid()).gr_name
+    owner = pwd.getpwuid(os.getuid()).pw_name
+    group = grp.getgrgid(os.getgid()).gr_name
 
-    host.write_file(path=dest_path + ".new", content=source, perms=perms, owner=owner, group=group)
+    host.write_file(path=dest_path + ".new", content=source, perms=0o644, owner=owner, group=group)
     os.rename(dest_path + ".new", dest_path)
     return True
 
 
-def _update_aliases(admin_email="", aliases_path="/etc/aliases") -> None:
+def _update_aliases(admin_email: str = "", aliases_path: str = "/etc/aliases") -> None:
 
     aliases = []
     try:

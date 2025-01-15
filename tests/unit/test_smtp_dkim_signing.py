@@ -490,28 +490,6 @@ class TestCharm(unittest.TestCase):
             got = f.read()
         self.assertEqual(got, source)
 
-    @mock.patch('charmhelpers.core.host.write_file')
-    @mock.patch('os.rename')
-    def test__write_file_owner_group(self, rename, write_file):
-        source = '# User-provided config added here'
-        dest = os.path.join(self.tmpdir, 'my-test-file')
-
-        self.assertTrue(smtp_dkim_signing._write_file(source, dest, owner="root", group="root"))
-        want = [
-            mock.call(path=dest + ".new", content=source, perms=420, owner="root", group="root")
-        ]
-        write_file.assert_has_calls(want, any_order=True)
-        self.assertEqual(len(want), len(write_file.mock_calls))
-
-        write_file.reset_mock()
-        with mock.patch('builtins.open', side_effect=FileNotFoundError):
-            smtp_dkim_signing._write_file(source, dest, owner="root", group="root")
-        want = [
-            mock.call(path=dest + ".new", content=source, perms=420, owner="root", group="root")
-        ]
-        write_file.assert_has_calls(want, any_order=True)
-        self.assertEqual(len(want), len(write_file.mock_calls))
-
     @mock.patch('subprocess.call')
     def test__update_aliases(self, call):
         dest = os.path.join(self.tmpdir, 'aliases')
