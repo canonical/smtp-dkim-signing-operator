@@ -1,3 +1,5 @@
+"""Utils for the SMTP DKIM signing charm."""
+
 import os
 import re
 
@@ -23,14 +25,14 @@ def update_logrotate_conf(path, frequency=None, retention=0, dateext=True):
 
         # Rotation frequency.
         if frequency and conf in ('daily', 'weekly', 'monthly'):
-            new.append('{}{}'.format(indent, frequency))
+            new.append(f"{indent}{frequency}")
         elif retention and conf == 'dateext':
             # Ignore 'dateext', we'll put it back on updating 'rotate'.
             continue
         elif retention and conf == 'rotate':
             if dateext:
-                new.append('{}dateext'.format(indent))
-            new.append('{}rotate {}'.format(indent, retention))
+                new.append(f"{indent}dateext")
+            new.append(f"{indent}rotate {retention}")
         else:
             new.append(line)
 

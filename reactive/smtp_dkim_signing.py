@@ -1,3 +1,5 @@
+"""SMTP DKIM signing charm."""
+
 import grp
 import os
 import pwd
@@ -63,13 +65,17 @@ def update_logrotate(logrotate_conf_path='/etc/logrotate.d/rsyslog'):
 
     config = hookenv.config()
     retention = config['log_retention']
-    contents = utils.update_logrotate_conf(logrotate_conf_path, frequency='daily', retention=retention)
+    contents = utils.update_logrotate_conf(
+        logrotate_conf_path, frequency='daily', retention=retention
+    )
     _write_file(contents, logrotate_conf_path)
 
 
 @reactive.when('smtp-dkim-signing.installed')
 @reactive.when_not('smtp-dkim-signing.configured')
-def configure_smtp_dkim_signing(dkim_conf_path=OPENDKIM_CONF_PATH, dkim_keys_dir=OPENDKIM_KEYS_PATH):
+def configure_smtp_dkim_signing(
+    dkim_conf_path=OPENDKIM_CONF_PATH, dkim_keys_dir=OPENDKIM_KEYS_PATH
+):
     status.maintenance('Setting up SMTP DKIM Signing')
     reactive.clear_flag('smtp-dkim-signing.active')
     reactive.clear_flag('smtp-dkim-signing.milter_notified')
@@ -79,7 +85,7 @@ def configure_smtp_dkim_signing(dkim_conf_path=OPENDKIM_CONF_PATH, dkim_keys_dir
     mode = config['mode']
     signing_mode = 's' in mode
 
-    keyfile = os.path.join(dkim_keys_dir, '{}.private'.format(os.path.basename(config['selector'])))
+    keyfile = os.path.join(dkim_keys_dir, f"{os.path.basename(config['selector'])}.private")
     signing_key = config.get('signing_key', '')
     if signing_key == 'auto':
         # With automatic key generation, the leader unit needs to generate
@@ -87,7 +93,9 @@ def configure_smtp_dkim_signing(dkim_conf_path=OPENDKIM_CONF_PATH, dkim_keys_dir
         #   $ opendkim-genkey -t -s $SELECTOR -d $DOMAIN
         status.blocked('Automatic generation of signing keys not implemented yet')
         return
-    elif signing_key.startswith('-----BEGIN RSA PRIVATE KEY-----') and signing_key.strip().endswith(
+    if signing_key.startswith(
+        '-----BEGIN RSA PRIVATE KEY-----'
+    ) and signing_key.strip().endswith(
         '-----END RSA PRIVATE KEY-----'
     ):
         _write_file(signing_key, keyfile)
@@ -115,14 +123,14 @@ def configure_smtp_dkim_signing(dkim_conf_path=OPENDKIM_CONF_PATH, dkim_keys_dir
         'canonicalization': 'relaxed/relaxed',
         'domains': domains,
         'internalhosts': config['trusted_sources'] or '0.0.0.0/0',
-        'keyfile': os.path.join(OPENDKIM_KEYS_PATH, '{}.private'.format(config['selector'])),
+        'keyfile': os.path.join(OPENDKIM_KEYS_PATH, f"{config['selector']}.private"),
         'keytable': keytable_path if config['keytable'] else '',
         'mode': mode,
         'selector': config['selector'],
         'signing_mode': signing_mode,
         'signheaders': DEFAULT_SIGN_HEADERS,
         'signingtable': signingtable_path if config['signingtable'] else '',
-        'socket': 'inet:{}'.format(OPENDKIM_MILTER_PORT),
+        'socket': f"inet:{OPENDKIM_MILTER_PORT}",
     }
     base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(base))  # nosec
@@ -132,9 +140,6 @@ def configure_smtp_dkim_signing(dkim_conf_path=OPENDKIM_CONF_PATH, dkim_keys_dir
         host.service_reload('opendkim')
     # Ensure service is running.
     host.service_start('opendkim')
-
-    # XXX: If/when we make the port a config option, we'll want to
-    # open the new port, then make sure the old port is closed.
     hookenv.open_port(OPENDKIM_MILTER_PORT, 'TCP')
 
     reactive.set_flag('smtp-dkim-signing.configured')
@@ -165,24 +170,18 @@ def milter_notify():
 def set_active(version_file='version'):
     revision = ''
     if os.path.exists(version_file):
-        with open(version_file) as f:
+        with open(version_file, encoding="utf-8") as f:
             line = f.readline().strip()
         # We only want the first 8 characters, that's enough to tell
         # which version of the charm we're using. But include the
         # entire version if it's 'dirty' according to charm build.
         if len(line) > 8 and not line == line[:7] + '-dirty':
-            revision = ' (source version/commit {}…)'.format(line[:8])
+            revision = f" (source version/commit {line[:8]}…)"
         else:
-            revision = ' (source version/commit {})'.format(line)
+            revision = f" (source version/commit {line})"
 
-    status.active('Ready{}'.format(revision))
+    status.active(f"Ready{revision}")
     reactive.set_flag('smtp-dkim-signing.active')
-
-
-def _copy_file(source_path, dest_path, **kwargs):
-    with open(source_path, 'r') as f:
-        source = f.read()
-    return _write_file(source, dest_path, **kwargs)
 
 
 def _write_file(source, dest_path, perms=0o644, owner=None, group=None):
@@ -190,10 +189,10 @@ def _write_file(source, dest_path, perms=0o644, owner=None, group=None):
     # Compare and only write out file on change.
     dest = ''
     if not os.path.exists(dest_path):
-        with open(dest_path, 'a') as f:
+        with open(dest_path, 'a', encoding="utf-8") as f:
             os.utime(dest_path, None)
     try:
-        with open(dest_path, 'r') as f:
+        with open(dest_path, 'r', encoding="utf-8") as f:
             dest = f.read()
         if source == dest:
             return False
@@ -214,7 +213,7 @@ def _update_aliases(admin_email='', aliases_path='/etc/aliases'):
 
     aliases = []
     try:
-        with open(aliases_path, 'r') as f:
+        with open(aliases_path, 'r', encoding="utf-8") as f:
             aliases = f.readlines()
     except FileNotFoundError:
         pass
@@ -231,10 +230,8 @@ def _update_aliases(admin_email='', aliases_path='/etc/aliases'):
     if add_devnull:
         new_aliases.append('devnull:       /dev/null\n')
     if admin_email:
-        new_aliases.append('root:          {}\n'.format(admin_email))
+        new_aliases.append(f"root:          {admin_email}\n")
 
     changed = _write_file(''.join(new_aliases), aliases_path)
     if changed:
         subprocess.call(['newaliases'])  # nosec
-
-    return

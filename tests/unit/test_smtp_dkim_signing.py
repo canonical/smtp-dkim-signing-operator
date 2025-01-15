@@ -1,3 +1,5 @@
+"""Unit tests for the SMTP DKIM signing charm."""
+
 import os
 import shutil
 import sys
@@ -17,35 +19,39 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath
 from reactive import smtp_dkim_signing  # NOQA: E402
 
 
+# pylint: disable=unused-argument,protected-access,too-many-public-methods
+
 class TestCharm(unittest.TestCase):
     def setUp(self):
-        self.maxDiff = None
+        self.maxdiff = None
         self.tmpdir = tempfile.mkdtemp(prefix='charm-unittests-')
         self.addCleanup(shutil.rmtree, self.tmpdir)
         os.environ['UNIT_STATE_DB'] = os.path.join(self.tmpdir, '.unit-state.db')
         unitdata.kv().set('test', {})
 
-        self.charm_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+        self.charm_dir = os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        )
 
         patcher = mock.patch('charmhelpers.core.hookenv.log')
-        self.mock_log = patcher.start()
+        mock_log = patcher.start()
         self.addCleanup(patcher.stop)
-        self.mock_log.return_value = ''
+        mock_log.return_value = ''
         # Also needed for host.write_file()
         patcher = mock.patch('charmhelpers.core.host.log')
-        self.mock_log = patcher.start()
+        mock_log = patcher.start()
         self.addCleanup(patcher.stop)
-        self.mock_log.return_value = ''
+        mock_log.return_value = ''
 
         patcher = mock.patch('charmhelpers.core.hookenv.charm_dir')
-        self.mock_charm_dir = patcher.start()
+        mock_charm_dir = patcher.start()
         self.addCleanup(patcher.stop)
-        self.mock_charm_dir.return_value = self.charm_dir
+        mock_charm_dir.return_value = self.charm_dir
 
         patcher = mock.patch('charmhelpers.core.hookenv.local_unit')
-        self.mock_local_unit = patcher.start()
+        mock_local_unit = patcher.start()
         self.addCleanup(patcher.stop)
-        self.mock_local_unit.return_value = 'smtp-dkim-signing/0'
+        mock_local_unit.return_value = 'smtp-dkim-signing/0'
 
         patcher = mock.patch('charmhelpers.core.hookenv.config')
         self.mock_config = patcher.start()
@@ -61,10 +67,6 @@ class TestCharm(unittest.TestCase):
             'trusted_sources': '',
         }
 
-        patcher = mock.patch('charmhelpers.core.hookenv.close_port')
-        self.mock_close_port = patcher.start()
-        self.addCleanup(patcher.stop)
-
         patcher = mock.patch('charmhelpers.core.hookenv.open_port')
         self.mock_open_port = patcher.start()
         self.addCleanup(patcher.stop)
@@ -74,15 +76,15 @@ class TestCharm(unittest.TestCase):
         self.addCleanup(patcher.stop)
 
         patcher = mock.patch('charmhelpers.core.host.service_restart')
-        self.mock_service_restart = patcher.start()
+        patcher.start()
         self.addCleanup(patcher.stop)
 
         patcher = mock.patch('charmhelpers.core.host.service_start')
-        self.mock_service_start = patcher.start()
+        patcher.start()
         self.addCleanup(patcher.stop)
 
         patcher = mock.patch('charmhelpers.core.host.service_stop')
-        self.mock_service_stop = patcher.start()
+        patcher.start()
         self.addCleanup(patcher.stop)
 
         status.active.reset_mock()
@@ -142,7 +144,9 @@ class TestCharm(unittest.TestCase):
         set_flag.assert_has_calls(want, any_order=True)
         self.assertEqual(len(want), len(set_flag.mock_calls))
 
-        want = [mock.call('smtp-dkim-signing.active'), mock.call('smtp-dkim-signing.milter_notified')]
+        want = [
+            mock.call('smtp-dkim-signing.active'), mock.call('smtp-dkim-signing.milter_notified')
+        ]
         clear_flag.assert_has_calls(want, any_order=True)
         self.assertEqual(len(want), len(clear_flag.mock_calls))
 
@@ -156,9 +160,9 @@ class TestCharm(unittest.TestCase):
         relation_ids.return_value = ['milter:32']
         smtp_dkim_signing.configure_smtp_dkim_signing(opendkim_conf_path)
 
-        with open(opendkim_conf_path, 'r') as f:
+        with open(opendkim_conf_path, 'r', encoding="utf-8") as f:
             got = f.read()
-        with open('tests/unit/files/opendkim.conf', 'r') as f:
+        with open('tests/unit/files/opendkim.conf', 'r', encoding="utf-8") as f:
             want = f.read()
         self.assertEqual(want, got)
 
@@ -169,16 +173,18 @@ class TestCharm(unittest.TestCase):
     @mock.patch('charms.reactive.set_flag')
     @mock.patch('charmhelpers.core.hookenv.relation_ids')
     @mock.patch('charmhelpers.core.hookenv.relation_set')
-    def test_configure_smtp_dkim_signing_domain_none(self, relation_set, relation_ids, set_flag, clear_flag):
+    def test_configure_smtp_dkim_signing_domain_none(
+        self, relation_set, relation_ids, set_flag, clear_flag
+    ):
         opendkim_conf_path = os.path.join(self.tmpdir, 'opendkim.conf')
 
         relation_ids.return_value = ['milter:32']
         self.mock_config.return_value['domains'] = ''
         smtp_dkim_signing.configure_smtp_dkim_signing(opendkim_conf_path)
 
-        with open(opendkim_conf_path, 'r') as f:
+        with open(opendkim_conf_path, 'r', encoding="utf-8") as f:
             got = f.read()
-        with open('tests/unit/files/opendkim-domains-none.conf', 'r') as f:
+        with open('tests/unit/files/opendkim-domains-none.conf', 'r', encoding="utf-8") as f:
             want = f.read()
         self.assertEqual(want, got)
 
@@ -186,16 +192,20 @@ class TestCharm(unittest.TestCase):
     @mock.patch('charms.reactive.set_flag')
     @mock.patch('charmhelpers.core.hookenv.relation_ids')
     @mock.patch('charmhelpers.core.hookenv.relation_set')
-    def test_configure_smtp_dkim_signing_domain_multi(self, relation_set, relation_ids, set_flag, clear_flag):
+    def test_configure_smtp_dkim_signing_domain_multi(
+        self, relation_set, relation_ids, set_flag, clear_flag
+    ):
         opendkim_conf_path = os.path.join(self.tmpdir, 'opendkim.conf')
 
         relation_ids.return_value = ['milter:32']
-        self.mock_config.return_value['domains'] = 'mydomain1.local mydomain2.local,mydomain3.local'
+        self.mock_config.return_value['domains'] = (
+            'mydomain1.local mydomain2.local,mydomain3.local'
+        )
         smtp_dkim_signing.configure_smtp_dkim_signing(opendkim_conf_path)
 
-        with open(opendkim_conf_path, 'r') as f:
+        with open(opendkim_conf_path, 'r', encoding="utf-8") as f:
             got = f.read()
-        with open('tests/unit/files/opendkim-domains-multi.conf', 'r') as f:
+        with open('tests/unit/files/opendkim-domains-multi.conf', 'r', encoding="utf-8") as f:
             want = f.read()
         self.assertEqual(want, got)
 
@@ -203,13 +213,17 @@ class TestCharm(unittest.TestCase):
     @mock.patch('charms.reactive.set_flag')
     @mock.patch('charmhelpers.core.hookenv.relation_ids')
     @mock.patch('charmhelpers.core.hookenv.relation_set')
-    def test_configure_smtp_dkim_signing_key_auto(self, relation_set, relation_ids, set_flag, clear_flag):
+    def test_configure_smtp_dkim_signing_key_auto(
+        self, relation_set, relation_ids, set_flag, clear_flag
+    ):
         opendkim_conf_path = os.path.join(self.tmpdir, 'opendkim.conf')
 
         self.mock_config.return_value['signing_key'] = 'auto'
         smtp_dkim_signing.configure_smtp_dkim_signing(opendkim_conf_path)
 
-        status.blocked.assert_called_with('Automatic generation of signing keys not implemented yet')
+        status.blocked.assert_called_with(
+            'Automatic generation of signing keys not implemented yet'
+        )
         self.mock_service_reload.assert_not_called()
         self.mock_open_port.assert_not_called()
 
@@ -217,22 +231,24 @@ class TestCharm(unittest.TestCase):
     @mock.patch('charms.reactive.set_flag')
     @mock.patch('charmhelpers.core.hookenv.relation_ids')
     @mock.patch('charmhelpers.core.hookenv.relation_set')
-    def test_configure_smtp_dkim_signing_key_provided(self, relation_set, relation_ids, set_flag, clear_flag):
+    def test_configure_smtp_dkim_signing_key_provided(
+        self, relation_set, relation_ids, set_flag, clear_flag
+    ):
         opendkim_conf_path = os.path.join(self.tmpdir, 'opendkim.conf')
 
         relation_ids.return_value = ['milter:32']
-        with open('tests/unit/files/signing_key.private', 'r') as f:
+        with open('tests/unit/files/signing_key.private', 'r', encoding="utf-8") as f:
             signing_key = f.read()
         self.mock_config.return_value['signing_key'] = signing_key
         smtp_dkim_signing.configure_smtp_dkim_signing(opendkim_conf_path, self.tmpdir)
 
-        with open(opendkim_conf_path, 'r') as f:
+        with open(opendkim_conf_path, 'r', encoding="utf-8") as f:
             got = f.read()
-        with open('tests/unit/files/opendkim.conf', 'r') as f:
+        with open('tests/unit/files/opendkim.conf', 'r', encoding="utf-8") as f:
             want = f.read()
         self.assertEqual(want, got)
         self.assertTrue(os.path.exists(os.path.join(self.tmpdir, '20210622.private')))
-        with open(os.path.join(self.tmpdir, '20210622.private'), 'r') as f:
+        with open(os.path.join(self.tmpdir, '20210622.private'), 'r', encoding="utf-8") as f:
             got = f.read()
         want = signing_key
         self.assertEqual(want, got)
@@ -244,7 +260,9 @@ class TestCharm(unittest.TestCase):
     @mock.patch('charms.reactive.set_flag')
     @mock.patch('charmhelpers.core.hookenv.relation_ids')
     @mock.patch('charmhelpers.core.hookenv.relation_set')
-    def test_configure_smtp_dkim_signing_key_provided_invalid(self, relation_set, relation_ids, set_flag, clear_flag):
+    def test_configure_smtp_dkim_signing_key_provided_invalid(
+        self, relation_set, relation_ids, set_flag, clear_flag
+    ):
         opendkim_conf_path = os.path.join(self.tmpdir, 'opendkim.conf')
 
         relation_ids.return_value = ['milter:32']
@@ -260,22 +278,24 @@ class TestCharm(unittest.TestCase):
     @mock.patch('charms.reactive.set_flag')
     @mock.patch('charmhelpers.core.hookenv.relation_ids')
     @mock.patch('charmhelpers.core.hookenv.relation_set')
-    def test_configure_smtp_dkim_signing_keytable(self, relation_set, relation_ids, set_flag, clear_flag):
+    def test_configure_smtp_dkim_signing_keytable(
+        self, relation_set, relation_ids, set_flag, clear_flag
+    ):
         opendkim_conf_path = os.path.join(self.tmpdir, 'opendkim.conf')
         keytable_path = os.path.join(self.tmpdir, 'keytable')
 
         relation_ids.return_value = ['milter:32']
-        with open('tests/unit/files/keytable', 'r') as f:
+        with open('tests/unit/files/keytable', 'r', encoding="utf-8") as f:
             keytable = f.read()
         self.mock_config.return_value['keytable'] = keytable
         smtp_dkim_signing.configure_smtp_dkim_signing(opendkim_conf_path, self.tmpdir)
-        with open(opendkim_conf_path, 'r') as f:
+        with open(opendkim_conf_path, 'r', encoding="utf-8") as f:
             got = f.read()
-        with open('tests/unit/files/opendkim-keytable.conf', 'r') as f:
+        with open('tests/unit/files/opendkim-keytable.conf', 'r', encoding="utf-8") as f:
             want = f.read().format(keytable_path=keytable_path)
         self.assertEqual(want, got)
 
-        with open(keytable_path, 'r') as f:
+        with open(keytable_path, 'r', encoding="utf-8") as f:
             got = f.read()
         want = smtp_dkim_signing.JUJU_HEADER + keytable + '\n'
         self.assertEqual(want, got)
@@ -284,22 +304,24 @@ class TestCharm(unittest.TestCase):
     @mock.patch('charms.reactive.set_flag')
     @mock.patch('charmhelpers.core.hookenv.relation_ids')
     @mock.patch('charmhelpers.core.hookenv.relation_set')
-    def test_configure_smtp_dkim_signing_signingtable(self, relation_set, relation_ids, set_flag, clear_flag):
+    def test_configure_smtp_dkim_signing_signingtable(
+        self, relation_set, relation_ids, set_flag, clear_flag
+    ):
         opendkim_conf_path = os.path.join(self.tmpdir, 'opendkim.conf')
         signingtable_path = os.path.join(self.tmpdir, 'signingtable')
 
         relation_ids.return_value = ['milter:32']
-        with open('tests/unit/files/signingtable', 'r') as f:
+        with open('tests/unit/files/signingtable', 'r', encoding="utf-8") as f:
             signingtable = f.read()
         self.mock_config.return_value['signingtable'] = signingtable
         smtp_dkim_signing.configure_smtp_dkim_signing(opendkim_conf_path, self.tmpdir)
-        with open(opendkim_conf_path, 'r') as f:
+        with open(opendkim_conf_path, 'r', encoding="utf-8") as f:
             got = f.read()
-        with open('tests/unit/files/opendkim-signingtable.conf', 'r') as f:
+        with open('tests/unit/files/opendkim-signingtable.conf', 'r', encoding="utf-8") as f:
             want = f.read().format(signingtable_path=signingtable_path)
         self.assertEqual(want, got)
 
-        with open(signingtable_path, 'r') as f:
+        with open(signingtable_path, 'r', encoding="utf-8") as f:
             got = f.read()
         want = smtp_dkim_signing.JUJU_HEADER + signingtable + '\n'
         self.assertEqual(want, got)
@@ -316,17 +338,21 @@ class TestCharm(unittest.TestCase):
         signingtable_path = os.path.join(self.tmpdir, 'signingtable')
 
         relation_ids.return_value = ['milter:32']
-        with open('tests/unit/files/keytable', 'r') as f:
+        with open('tests/unit/files/keytable', 'r', encoding="utf-8") as f:
             keytable = f.read()
         self.mock_config.return_value['keytable'] = keytable
-        with open('tests/unit/files/signingtable', 'r') as f:
+        with open('tests/unit/files/signingtable', 'r', encoding="utf-8") as f:
             signingtable = f.read()
         self.mock_config.return_value['signingtable'] = signingtable
         smtp_dkim_signing.configure_smtp_dkim_signing(opendkim_conf_path, self.tmpdir)
-        with open(opendkim_conf_path, 'r') as f:
+        with open(opendkim_conf_path, 'r', encoding="utf-8") as f:
             got = f.read()
-        with open('tests/unit/files/opendkim-both-keytable-signingtable.conf', 'r') as f:
-            want = f.read().format(keytable_path=keytable_path, signingtable_path=signingtable_path)
+        with open(
+            'tests/unit/files/opendkim-both-keytable-signingtable.conf', 'r', encoding="utf-8"
+        ) as f:
+            want = f.read().format(
+                keytable_path=keytable_path, signingtable_path=signingtable_path
+            )
         self.assertEqual(want, got)
 
     @mock.patch('charms.reactive.clear_flag')
@@ -348,16 +374,18 @@ class TestCharm(unittest.TestCase):
     @mock.patch('charms.reactive.set_flag')
     @mock.patch('charmhelpers.core.hookenv.relation_ids')
     @mock.patch('charmhelpers.core.hookenv.relation_set')
-    def test_configure_smtp_dkim_signing_mode_sign_only(self, relation_set, relation_ids, set_flag, clear_flag):
+    def test_configure_smtp_dkim_signing_mode_sign_only(
+        self, relation_set, relation_ids, set_flag, clear_flag
+    ):
         opendkim_conf_path = os.path.join(self.tmpdir, 'opendkim.conf')
 
         relation_ids.return_value = ['milter:32']
         self.mock_config.return_value['mode'] = 's'
         smtp_dkim_signing.configure_smtp_dkim_signing(opendkim_conf_path)
 
-        with open(opendkim_conf_path, 'r') as f:
+        with open(opendkim_conf_path, 'r', encoding="utf-8") as f:
             got = f.read()
-        with open('tests/unit/files/opendkim-mode-s.conf', 'r') as f:
+        with open('tests/unit/files/opendkim-mode-s.conf', 'r', encoding="utf-8") as f:
             want = f.read()
         self.assertEqual(want, got)
 
@@ -368,16 +396,18 @@ class TestCharm(unittest.TestCase):
     @mock.patch('charms.reactive.set_flag')
     @mock.patch('charmhelpers.core.hookenv.relation_ids')
     @mock.patch('charmhelpers.core.hookenv.relation_set')
-    def test_configure_smtp_dkim_signing_mode_verify_only(self, relation_set, relation_ids, set_flag, clear_flag):
+    def test_configure_smtp_dkim_signing_mode_verify_only(
+        self, relation_set, relation_ids, set_flag, clear_flag
+    ):
         opendkim_conf_path = os.path.join(self.tmpdir, 'opendkim.conf')
 
         relation_ids.return_value = ['milter:32']
         self.mock_config.return_value['mode'] = 'v'
         smtp_dkim_signing.configure_smtp_dkim_signing(opendkim_conf_path)
 
-        with open(opendkim_conf_path, 'r') as f:
+        with open(opendkim_conf_path, 'r', encoding="utf-8") as f:
             got = f.read()
-        with open('tests/unit/files/opendkim-mode-v.conf', 'r') as f:
+        with open('tests/unit/files/opendkim-mode-v.conf', 'r', encoding="utf-8") as f:
             want = f.read()
         self.assertEqual(want, got)
 
@@ -439,23 +469,10 @@ class TestCharm(unittest.TestCase):
 
     @mock.patch('charms.reactive.set_flag')
     def test_set_active_dirty_revno(self, set_flag):
-        smtp_dkim_signing.set_active(os.path.join(self.charm_dir, 'tests/unit/files/version_dirty'))
+        smtp_dkim_signing.set_active(
+            os.path.join(self.charm_dir, 'tests/unit/files/version_dirty')
+        )
         status.active.assert_called_once_with('Ready (source version/commit 38c901f-dirty)')
-
-    def test__copy_file(self):
-        source = os.path.join(self.charm_dir, 'templates/opendkim_conf.tmpl')
-        dest = os.path.join(self.tmpdir, os.path.basename(source))
-
-        self.assertTrue(smtp_dkim_signing._copy_file(source, dest))
-        # Write again, should return False and not True per above.
-        self.assertFalse(smtp_dkim_signing._copy_file(source, dest))
-
-        # Check contents
-        with open(source, 'r') as f:
-            want = f.read()
-        with open(dest, 'r') as f:
-            got = f.read()
-        self.assertEqual(got, want)
 
     def test__write_file(self):
         source = '# User-provided config added here'
@@ -466,7 +483,7 @@ class TestCharm(unittest.TestCase):
         self.assertFalse(smtp_dkim_signing._write_file(source, dest))
 
         # Check contents
-        with open(dest, 'r') as f:
+        with open(dest, 'r', encoding="utf-8") as f:
             got = f.read()
         self.assertEqual(got, source)
 
@@ -477,14 +494,18 @@ class TestCharm(unittest.TestCase):
         dest = os.path.join(self.tmpdir, 'my-test-file')
 
         self.assertTrue(smtp_dkim_signing._write_file(source, dest, owner='root', group='root'))
-        want = [mock.call(path=dest + '.new', content=source, perms=420, owner='root', group='root')]
+        want = [
+            mock.call(path=dest + '.new', content=source, perms=420, owner='root', group='root')
+        ]
         write_file.assert_has_calls(want, any_order=True)
         self.assertEqual(len(want), len(write_file.mock_calls))
 
         write_file.reset_mock()
         with mock.patch('builtins.open', side_effect=FileNotFoundError):
             smtp_dkim_signing._write_file(source, dest, owner='root', group='root')
-        want = [mock.call(path=dest + '.new', content=source, perms=420, owner='root', group='root')]
+        want = [
+            mock.call(path=dest + '.new', content=source, perms=420, owner='root', group='root')
+        ]
         write_file.assert_has_calls(want, any_order=True)
         self.assertEqual(len(want), len(write_file.mock_calls))
 
@@ -503,7 +524,7 @@ class TestCharm(unittest.TestCase):
         # Has something prepopulated, but not devnull.
         call.reset_mock()
         content = 'postmaster:    root\n'
-        with open(dest, 'w') as f:
+        with open(dest, 'w', encoding="utf-8") as f:
             f.write(content)
         smtp_dkim_signing._update_aliases('', dest)
         want = content + 'devnull:       /dev/null\n'
@@ -515,7 +536,7 @@ class TestCharm(unittest.TestCase):
         # Has devnull, so do nothing and do not call newaliases.
         call.reset_mock()
         content = 'postmaster:    root\ndevnull:       /dev/null\n'
-        with open(dest, 'w') as f:
+        with open(dest, 'w', encoding="utf-8") as f:
             f.write(content)
         smtp_dkim_signing._update_aliases('', dest)
         want = content
@@ -527,10 +548,13 @@ class TestCharm(unittest.TestCase):
         # Admin email set.
         call.reset_mock()
         content = 'postmaster:    root\ndevnull:       /dev/null\n'
-        with open(dest, 'w') as f:
+        with open(dest, 'w', encoding="utf-8") as f:
             f.write(content)
         smtp_dkim_signing._update_aliases('root@admin.mydomain.local', dest)
-        want = 'postmaster:    root\ndevnull:       /dev/null\nroot:          root@admin.mydomain.local\n'
+        want = (
+            "postmaster:    root\ndevnull:       /dev/null\n"
+            "root:          root@admin.mydomain.local\n"
+        )
         with open(dest, 'r', encoding='utf-8') as f:
             got = f.read()
         self.assertEqual(want, got)
@@ -538,8 +562,11 @@ class TestCharm(unittest.TestCase):
 
         # Has admin email, so do nothing and do not call newaliases.
         call.reset_mock()
-        content = 'postmaster:    root\ndevnull:       /dev/null\nroot:          root@admin.mydomain.local\n'
-        with open(dest, 'w') as f:
+        content = (
+            "postmaster:    root\ndevnull:       /dev/null\n"
+            "root:          root@admin.mydomain.local\n"
+        )
+        with open(dest, 'w', encoding="utf-8") as f:
             f.write(content)
         smtp_dkim_signing._update_aliases('root@admin.mydomain.local', dest)
         want = content
