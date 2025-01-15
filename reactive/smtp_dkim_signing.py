@@ -30,7 +30,7 @@ DEFAULT_SIGN_HEADERS = (
 
 
 @reactive.hook("upgrade-charm")
-def upgrade_charm():
+def upgrade_charm() -> None:
     status.maintenance("forcing reconfiguration on upgrade-charm")
     reactive.clear_flag("smtp-dkim-signing.active")
     reactive.clear_flag("smtp-dkim-signing.configured")
@@ -38,7 +38,7 @@ def upgrade_charm():
 
 
 @reactive.when_not("smtp-dkim-signing.installed")
-def install():
+def install() -> None:
     reactive.clear_flag("smtp-dkim-signing.active")
     reactive.clear_flag("smtp-dkim-signing.configured")
     reactive.set_flag("smtp-dkim-signing.installed")
@@ -52,7 +52,7 @@ def install():
     "config.changed.signingtable",
     "config.changed.trusted_sources",
 )
-def config_changed():
+def config_changed() -> None:
     reactive.clear_flag("smtp-dkim-signing.configured")
 
     config = hookenv.config()
@@ -60,7 +60,7 @@ def config_changed():
 
 
 @reactive.when("config.changed.log_retention")
-def update_logrotate(logrotate_conf_path="/etc/logrotate.d/rsyslog"):
+def update_logrotate(logrotate_conf_path="/etc/logrotate.d/rsyslog") -> None:
     reactive.clear_flag("smtp-dkim-signing.active")
     status.maintenance("Updating log retention / rotation configs")
 
@@ -76,7 +76,7 @@ def update_logrotate(logrotate_conf_path="/etc/logrotate.d/rsyslog"):
 @reactive.when_not("smtp-dkim-signing.configured")
 def configure_smtp_dkim_signing(
     dkim_conf_path=OPENDKIM_CONF_PATH, dkim_keys_dir=OPENDKIM_KEYS_PATH
-):
+) -> None:
     status.maintenance("Setting up SMTP DKIM Signing")
     reactive.clear_flag("smtp-dkim-signing.active")
     reactive.clear_flag("smtp-dkim-signing.milter_notified")
@@ -145,13 +145,13 @@ def configure_smtp_dkim_signing(
 
 
 @reactive.hook("milter-relation-joined", "milter-relation-changed")
-def milter_relation_changed():
+def milter_relation_changed() -> None:
     reactive.clear_flag("smtp-dkim-signing.milter_notified")
 
 
 @reactive.when("smtp-dkim-signing.configured")
 @reactive.when_not("smtp-dkim-signing.milter_notified")
-def milter_notify():
+def milter_notify() -> None:
     reactive.clear_flag("smtp-dkim-signing.active")
     status.maintenance("Notifying related applications of updated settings")
 
@@ -166,7 +166,7 @@ def milter_notify():
 
 @reactive.when("smtp-dkim-signing.configured")
 @reactive.when_not("smtp-dkim-signing.active")
-def set_active(version_file="version"):
+def set_active(version_file="version") -> None:
     revision = ""
     if os.path.exists(version_file):
         with open(version_file, encoding="utf-8") as f:
@@ -183,7 +183,7 @@ def set_active(version_file="version"):
     reactive.set_flag("smtp-dkim-signing.active")
 
 
-def _write_file(source, dest_path, perms=0o644, owner=None, group=None):
+def _write_file(source, dest_path, perms=0o644, owner=None, group=None) -> bool:
     """Write file only on changes and return True if changes written."""
     # Compare and only write out file on change.
     dest = ""
@@ -208,7 +208,7 @@ def _write_file(source, dest_path, perms=0o644, owner=None, group=None):
     return True
 
 
-def _update_aliases(admin_email="", aliases_path="/etc/aliases"):
+def _update_aliases(admin_email="", aliases_path="/etc/aliases") -> None:
 
     aliases = []
     try:
