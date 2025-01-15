@@ -1,3 +1,6 @@
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
+
 """Unit tests for utils class."""
 
 import os
@@ -17,7 +20,7 @@ class TestLibUtils(unittest.TestCase):
         self.addCleanup(shutil.rmtree, self.tmpdir)
 
     def test_logrotate_frequency(self):
-        with open('tests/unit/files/logrotate_frequency', 'r', encoding="utf-8") as f:
+        with open('tests/unit/files/logrotate_frequency', "r", encoding="utf-8") as f:
             want = f.read()
         self.assertEqual(
             utils.update_logrotate_conf('tests/unit/files/logrotate', frequency='daily'), want
@@ -31,14 +34,14 @@ class TestLibUtils(unittest.TestCase):
         )
 
     def test_logrotate_retention(self):
-        with open('tests/unit/files/logrotate_retention', 'r', encoding="utf-8") as f:
+        with open('tests/unit/files/logrotate_retention', "r", encoding="utf-8") as f:
             want = f.read()
         self.assertEqual(
             utils.update_logrotate_conf('tests/unit/files/logrotate', retention=30), want
         )
 
     def test_logrotate_retention_no_dateext(self):
-        with open('tests/unit/files/logrotate_retention_no_dateext', 'r', encoding="utf-8") as f:
+        with open('tests/unit/files/logrotate_retention_no_dateext', "r", encoding="utf-8") as f:
             want = f.read()
         self.assertEqual(
             utils.update_logrotate_conf(
@@ -46,7 +49,7 @@ class TestLibUtils(unittest.TestCase):
             ), want
         )
 
-        with open('tests/unit/files/logrotate_retention_no_dateext', 'r', encoding="utf-8") as f:
+        with open('tests/unit/files/logrotate_retention_no_dateext', "r", encoding="utf-8") as f:
             want = f.read()
         self.assertEqual(
             utils.update_logrotate_conf(
