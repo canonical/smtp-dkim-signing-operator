@@ -18,11 +18,6 @@ options:
     default: ''
     description: |
       Key table mapping (use 'MANUAL' to manually manage).
-  log_retention:
-    type: int
-    default: 120
-    description: |
-      Number of days of mail logs to retain during rotation.
   mode:
     type: string
     default: 'sv'

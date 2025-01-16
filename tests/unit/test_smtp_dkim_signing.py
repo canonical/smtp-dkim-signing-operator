@@ -128,16 +128,6 @@ class TestCharm(unittest.TestCase):
         clear_flag.assert_has_calls(want, any_order=True)
 
     @mock.patch('charms.reactive.clear_flag')
-    @mock.patch('reactive.smtp_dkim_signing._write_file')
-    def test_update_logrotate(self, write_file, clear_flag):
-        self.mock_config.return_value = {'log_retention': 30}
-        smtp_dkim_signing.update_logrotate()
-        want = [mock.call('smtp-dkim-signing.active')]
-        clear_flag.assert_has_calls(want, any_order=True)
-        self.assertEqual(len(want), len(clear_flag.mock_calls))
-        write_file.assert_called()
-
-    @mock.patch('charms.reactive.clear_flag')
     @mock.patch('charms.reactive.set_flag')
     def test_configure_smtp_dkim_signing_flags(self, set_flag, clear_flag):
         opendkim_conf_path = os.path.join(self.tmpdir, 'opendkim.conf')
