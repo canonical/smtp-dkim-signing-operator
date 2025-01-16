@@ -1,12 +1,17 @@
-# SMTP DKIM Signing Charm
+[![CharmHub Badge](https://charmhub.io/smtp-dkim-signing/badge.svg)](https://charmhub.io/smtp-dkim-signing)
+[![Publish to edge](https://github.com/canonical/smtp-dkim-signing-operator/actions/workflows/publish_charm.yaml/badge.svg)](https://github.com/canonical/smtp-dkim-signing-operator/actions/workflows/publish_charm.yaml)
+[![Promote charm](https://github.com/canonical/smtp-dkim-signing-operator/actions/workflows/promote_charm.yaml/badge.svg)](https://github.com/canonical/smtp-dkim-signing-operator/actions/workflows/promote_charm.yaml)
+[![Discourse Status](https://img.shields.io/discourse/status?server=https%3A%2F%2Fdiscourse.charmhub.io&style=flat&label=CharmHub%20Discourse)](https://discourse.charmhub.io)
 
-## Description
+# SMTP DKIM Signing Operator
 
-The SMTP DKIM Signing Charm installs and configures opendkim.
+A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators) deploying and managing [OpenDKIM](http://www.opendkim.org/). OpenDKIM is an open source implementation of the DKIM (Domain Keys Identified Mail) sender authentication system proposed by the E-mail Signing Technology Group (ESTG).
 
-It's intended to be used together with the [SMTP Relay Charm](https://charmhub.io/smtp-relay).
+This charm intended to be used together with the [SMTP Relay Charm](https://charmhub.io/smtp-relay).
 
-## Usage
+For information about how to deploy, integrate, and manage this charm, see the Official [SMTP DKIM Signing Operator Documentation](https://charmhub.io/smtp-dkim-signing/docs).
+
+## Get started
 
 Provision a Juju environment then deploy 2 units with:
 
@@ -14,10 +19,16 @@ Provision a Juju environment then deploy 2 units with:
 juju deploy -n2 smtp-dkim-signing
 ```
 
-Then relate to an already deployed smtp-relay Juju application:
+Then integrate to an already deployed smtp-relay Juju application:
 
 ```
-juju relate smtp-dkim-signing smtp-relay
+juju integrate smtp-dkim-signing smtp-relay
+```
+
+To horizontally scale:
+
+```
+juju add-unit smtp-dkim-signing
 ```
 
 ### Generating new OpenDKIM signing keys
@@ -51,20 +62,12 @@ Add or publish new keys from ${domain}-${selector}.txt in DNS. Then apply and sw
 juju config smtp-dkim-signing selector=${selector} keytable="${selector}._domainkey.${domain?} ${domain?}:${selector}:/etc/dkimkeys/${domain?}-${selector}.private" signingtable="*@${domain?} ${selector}._domainkey.${domain?}"
 ```
 
-### Scale Out Usage
-
-To horizontally scale:
-
-```
-juju add-unit smtp-dkim-signing
-```
-
----
-
-## Testing
-
-Just run `make unittest`.
-
----
-
-For more details, [see here](https://charmhub.io/smtp-dkim-signing/configure).
+## Learn more
+* [Read more](https://charmhub.io/smtp-dkim-signing) <!--Link to the charm's official documentation-->
+* [Developer documentation](http://www.opendkim.org/docs.html) <!--Link to any developer documentation-->
+* [Official webpage](http://www.opendkim.org/) <!--(Optional) Link to official webpage/blog/marketing content-->
+* [Troubleshooting](https://matrix.to/#/#charmhub-charmdev:ubuntu.com) <!--(Optional) Link to a page or section about troubleshooting/FAQ-->
+## Project and community
+* [Issues](https://github.com/canonical/smtp-dkim-signing-operator/issues) <!--Link to GitHub issues (if applicable)-->
+* [Contributing](https://charmhub.io/smtp-dkim-signing/docs/how-to-contribute) <!--Link to any contribution guides-->
+* [Matrix](https://matrix.to/#/#charmhub-charmdev:ubuntu.com) <!--Link to contact info (if applicable), e.g. Matrix channel-->
