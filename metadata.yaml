@@ -1,8 +1,9 @@
 name: smtp-dkim-signing
 summary: SMTP DKIM Signing
 maintainers:
-  - launchpad.net/~smtp-relay-charmers
-issues: https://bugs.launchpad.net/smtp-dkim-signing-charm
+  - https://launchpad.net/~canonical-is-devops
+docs: https://discourse.charmhub.io/t/smtp-dkim-signing-documentation-overview/16597
+issues: https://github.com/canonical/smtp-dkim-signing-operator/issues
 description: |
   Installs and configures up DKIM signing for use with an SMTP server.
 tags:
