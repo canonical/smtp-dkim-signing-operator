@@ -1,13 +1,22 @@
-# Copyright 2025 Canonical Ltd.
-# See LICENSE file for licensing details.
-# This file configures Charmcraft.
-# See https://juju.is/docs/sdk/charmcraft-config for guidance.
-
-type: charm
+type: "charm"
 bases:
-  - build-on:
-    - name: ubuntu
-      channel: "22.04"
-    run-on:
-    - name: ubuntu
-      channel: "22.04"
+    - build-on:
+      # Can't build using Focal, although, probably best to default to build
+      # with Jammy from now on. See:
+      #     https://github.com/canonical/charmcraft/issues/904
+      # - name: "ubuntu"
+      #   channel: "20.04"
+      - name: "ubuntu"
+        channel: "22.04"
+      - name: "ubuntu"
+        channel: "22.10"
+      run-on:
+      - name: "ubuntu"
+        channel: "20.04"
+      - name: "ubuntu"
+        channel: "22.04"
+parts:
+  charm:
+    source: "."
+    plugin: "reactive"
+    build-snaps: [charm]

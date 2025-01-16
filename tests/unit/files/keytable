@@ -1,0 +1,1 @@
+mail._domainkey.myawsomedomain.local myawsomedomain.local:mail:/etc/dkimkeys/mail.private

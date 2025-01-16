@@ -1,0 +1,9 @@
+includes:
+  - layer:basic
+  - layer:nagios
+  - layer:status
+repo: lp:smtp-dkim-signing-charm
+options:
+  basic:
+    packages:
+      - opendkim

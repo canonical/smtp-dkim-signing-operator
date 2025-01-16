@@ -1,16 +1,48 @@
-# Copyright 2025 Canonical Ltd.
-# See LICENSE file for licensing details.
-# This file defines charm config options, and populates the Configure tab on Charmhub.
-# If your charm does not require configuration options, delete this file entirely.
-#
-# See https://juju.is/docs/config for guidance.
-
 options:
-  # An example config option to customise the log level of the workload
-  log-level:
-    description: |
-      Configures the log level of gunicorn. 
-
-      Acceptable values are: "info", "debug", "warning", "error" and "critical"
-    default: "info"
+  admin_email:
     type: string
+    default: ''
+    description: |
+      Administrator's email address where root@ emails will go.
+  domains:
+    type: string
+    default: '*'
+    description: |
+      Comma or space separated list of sender domain(s) to sign
+      messages for (default '*' will sign messages for all domains).
+  keytable:
+    type: string
+    default: ''
+    description: |
+      Key table mapping (use 'MANUAL' to manually manage).
+  log_retention:
+    type: int
+    default: 120
+    description: |
+      Number of days of mail logs to retain during rotation.
+  mode:
+    type: string
+    default: 'sv'
+    description: |
+      Selects operating modes. The string is a concatenation of
+      characters that indicate which mode(s) of operation are
+      desired. Valid modes are s (signer) and v (verifier). The
+      default is sv
+
+      See http://www.opendkim.org/opendkim.conf.5.html
+  selector:
+    type: string
+    default: 'mail'
+    description: |
+      Selector to use when signing messages with DKIM.
+  signingtable:
+    type: string
+    default: ''
+    description: |
+      Signing table mapping (use 'MANUAL' to manually manage).
+  trusted_sources:
+    type: string
+    default: ''
+    description: |
+      Comma-separated list of networks or hosts considered `trusted`
+      to DKIM sign messages (default '' will sign for all).
