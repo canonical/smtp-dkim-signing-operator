@@ -12,6 +12,7 @@ header:
     - '**/*.json'
     - '**/*.md'
     - '**/*.txt'
+    - 'templates/**'
     - 'tests/unit/files/**'
     - '.jujuignore'
     - '.gitignore'
