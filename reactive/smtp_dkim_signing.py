@@ -13,8 +13,6 @@ from charmhelpers.core import hookenv, host
 from charms import reactive
 from charms.layer import status
 
-from lib import utils
-
 JUJU_HEADER = "# This file is Juju managed - do not edit by hand #\n\n"
 OPENDKIM_CONF_PATH = "/etc/opendkim.conf"
 OPENDKIM_KEYS_PATH = "/etc/dkimkeys"
@@ -57,19 +55,6 @@ def config_changed() -> None:
 
     config = hookenv.config()
     _update_aliases(config["admin_email"])
-
-
-@reactive.when("config.changed.log_retention")
-def update_logrotate(logrotate_conf_path: str = "/etc/logrotate.d/rsyslog") -> None:
-    reactive.clear_flag("smtp-dkim-signing.active")
-    status.maintenance("Updating log retention / rotation configs")
-
-    config = hookenv.config()
-    retention = config["log_retention"]
-    contents = utils.update_logrotate_conf(
-        logrotate_conf_path, frequency="daily", retention=retention
-    )
-    _write_file(contents, logrotate_conf_path)
 
 
 @reactive.when("smtp-dkim-signing.installed")
