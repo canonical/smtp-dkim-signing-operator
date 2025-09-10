@@ -3,9 +3,9 @@
 [![Promote charm](https://github.com/canonical/smtp-dkim-signing-operator/actions/workflows/promote_charm.yaml/badge.svg)](https://github.com/canonical/smtp-dkim-signing-operator/actions/workflows/promote_charm.yaml)
 [![Discourse Status](https://img.shields.io/discourse/status?server=https%3A%2F%2Fdiscourse.charmhub.io&style=flat&label=CharmHub%20Discourse)](https://discourse.charmhub.io)
 
-# SMTP DKIM Signing Operator
+# SMTP DKIM signing operator
 
-A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators) deploying and managing [OpenDKIM](http://www.opendkim.org/). OpenDKIM is an open source implementation of the DKIM (Domain Keys Identified Mail) sender authentication system proposed by the E-mail Signing Technology Group (ESTG).
+A [Juju](https://juju.is/) [charm](https://documentation.ubuntu.com/juju/3.6/reference/charm/) deploying and managing [OpenDKIM](http://www.opendkim.org/). OpenDKIM is an open source implementation of the DKIM (Domain Keys Identified Mail) sender authentication system proposed by the E-mail Signing Technology Group (ESTG).
 
 This charm intended to be used together with the [SMTP Relay Charm](https://charmhub.io/smtp-relay).
 
@@ -13,7 +13,7 @@ For information about how to deploy, integrate, and manage this charm, see the O
 
 ## Get started
 
-Provision a Juju environment then deploy 2 units with:
+Provision a Juju environment then deploy two units with:
 
 ```
 juju deploy -n2 smtp-dkim-signing
