@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 def generate_opendkim_genkey(domain: str, selector: str) -> (str, str):
-    # Returns txt, private
+    """Generate dkim txt record and private key for a domain an selector."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         logger.info("JAVI TEMPDIR: %s", tmpdirname)
         subprocess.run(  # nosec
@@ -80,15 +80,15 @@ def test_simple_relay_dkim(
         },
     )
 
-    # The charm does not restart opendkim on changes in the config values.
+    # The charm does not restart opendkim on changes in the config values. This is a bug.
     juju.exec("systemctl restart opendkim", unit=dkim_unit)
 
     command_to_put_domain = (
-        f"echo {machine_ip_address} testrelay.internal | sudo tee -a /etc/hosts"
+        f"echo {machine_ip_address} {domain} | sudo tee -a /etc/hosts"
     )
     juju.exec(machine=unit.machine, command=command_to_put_domain)
 
-    juju.config(smtp_relay_app, {"relay_domains": "- testrelay.internal"})
+    juju.config(smtp_relay_app, {"relay_domains": f"- {domain}"})
     juju.wait(
         lambda status: status.apps[smtp_relay_app].is_active,
         error=jubilant.any_blocked,
@@ -102,8 +102,8 @@ def test_simple_relay_dkim(
 
     with smtplib.SMTP(unit_ip) as server:
         server.set_debuglevel(2)
-        from_addr = "Some One <someone@testrelay.internal>"
-        to_addrs = ["otherone@testrelay.internal"]
+        from_addr = f"Some One <someone@{domain}>"
+        to_addrs = [f"otherone@{domain}"]
         message = f"""\
 Subject: Hi Mailtrap
 To: {from_addr}
@@ -116,11 +116,10 @@ This is my first message with Python."""
         if messages:
             break
         time.sleep(1)
-    import pdb
-
-    pdb.set_trace()
     assert len(messages) == 1
-    # message = requests.get(f"{mailcatcher_url}"/, timeout=5).json()
+    message = requests.get(f"{mailcatcher_url}/{messages[0]['id']}.source", timeout=5).text
+    logger.info("Message in mailcatcher: %s", message)
+    assert f"DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d={domain}" in message
 
     # Clean up mailcatcher
     requests.delete(f"{mailcatcher_url}/{messages[0]['id']}", timeout=5)

@@ -9,7 +9,6 @@ from collections.abc import Generator
 import jubilant
 import pytest
 
-
 @pytest.fixture(scope="module", name="smtp_dkim_signing_charm")
 def smtp_dkim_signing_charm_fixture(pytestconfig: pytest.Config):
     """Get value from parameter charm-file."""
