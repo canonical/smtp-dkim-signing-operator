@@ -8,6 +8,7 @@ jobs:
     uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
     secrets: inherit
     with:
+      extra-arguments: '-x --log-format="%(asctime)s %(levelname)s %(message)s"'
       self-hosted-runner: true
       self-hosted-runner-label: "edge"
       juju-channel: 3/stable
