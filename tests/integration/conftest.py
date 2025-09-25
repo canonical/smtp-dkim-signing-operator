@@ -19,6 +19,7 @@ def smtp_dkim_signing_charm_fixture(pytestconfig: pytest.Config):
         assert charm, "--charm-file must be set"
     return charm
 
+
 @pytest.fixture(scope="module", name="smtp_dkim_signing_app")
 def deploy_smtp_dkim_signing_fixture(
     smtp_dkim_signing_charm: str,

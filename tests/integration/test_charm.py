@@ -9,9 +9,9 @@ import logging
 import pathlib
 import smtplib
 import socket
+import subprocess  # nosec B404
 import tempfile
 import time
-import subprocess
 
 import jubilant
 import pytest
@@ -24,7 +24,9 @@ def generate_opendkim_genkey(domain: str, selector: str) -> (str, str):
     # Returns txt, private
     with tempfile.TemporaryDirectory() as tmpdirname:
         logger.info("JAVI TEMPDIR: %s", tmpdirname)
-        subprocess.run(["opendkim-genkey", "-s", selector, "-d", domain], check=True, cwd=tmpdirname)
+        subprocess.run(  # nosec
+            ["opendkim-genkey", "-s", selector, "-d", domain], check=True, cwd=tmpdirname
+        )
         # Two files should have been created, {selector}.txt and {selector}.private
         txt_data = (pathlib.Path(tmpdirname) / pathlib.Path(f"{selector}.txt")).read_text()
         private_data = (pathlib.Path(tmpdirname) / pathlib.Path(f"{selector}.private")).read_text()
@@ -41,8 +43,11 @@ def machine_ip_address_fixture() -> str:
     s.close()
     return ip_address
 
+
 @pytest.mark.abort_on_fail
-def test_simple_relay_dkim(juju: jubilant.Juju, smtp_dkim_signing_app, smtp_relay_app, machine_ip_address):
+def test_simple_relay_dkim(
+    juju: jubilant.Juju, smtp_dkim_signing_app, smtp_relay_app, machine_ip_address
+):
     """
     arrange: Deploy smtp-relay charm with the testrelay.internal domain in relay domains.
     act: Send an email to an address with the testrelay.internal domain.
@@ -61,13 +66,19 @@ def test_simple_relay_dkim(juju: jubilant.Juju, smtp_dkim_signing_app, smtp_rela
         tf.write(private_key.encode("utf-8"))
         tf.flush()
         juju.scp(tf.name, f"{dkim_unit}:/tmp/{domain}-{selector}.private")
-        juju.exec(f"mv /tmp/{domain}-{selector}.private /etc/dkimkeys/; chown -R opendkim: /etc/dkimkeys/; chmod -R go-rwx /etc/dkimkeys/", unit=dkim_unit)
+        juju.exec(
+            f"mv /tmp/{domain}-{selector}.private /etc/dkimkeys/; chown -R opendkim: /etc/dkimkeys/; chmod -R go-rwx /etc/dkimkeys/",
+            unit=dkim_unit,
+        )
 
-    juju.config(smtp_dkim_signing_app, {
-        "selector": selector,
-        "keytable": f"{selector}._domainkey.{domain} {domain}:{selector}:/etc/dkimkeys/{domain}-{selector}.private",
-        "signingtable": f"*@{domain} {selector}._domainkey.{domain}",
-    })
+    juju.config(
+        smtp_dkim_signing_app,
+        {
+            "selector": selector,
+            "keytable": f"{selector}._domainkey.{domain} {domain}:{selector}:/etc/dkimkeys/{domain}-{selector}.private",
+            "signingtable": f"*@{domain} {selector}._domainkey.{domain}",
+        },
+    )
 
     # The charm does not restart opendkim on changes in the config values.
     juju.exec("systemctl restart opendkim", unit=dkim_unit)
@@ -105,7 +116,9 @@ This is my first message with Python."""
         if messages:
             break
         time.sleep(1)
-    import pdb; pdb.set_trace()
+    import pdb
+
+    pdb.set_trace()
     assert len(messages) == 1
     # message = requests.get(f"{mailcatcher_url}"/, timeout=5).json()
 
