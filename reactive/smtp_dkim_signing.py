@@ -12,6 +12,7 @@ import jinja2
 from charmhelpers.core import hookenv, host
 from charms import reactive
 from charms.layer import status
+from reactive import state
 
 JUJU_HEADER = "# This file is Juju managed - do not edit by hand #\n\n"
 OPENDKIM_CONF_PATH = "/etc/opendkim.conf"
@@ -54,7 +55,8 @@ def config_changed() -> None:
     reactive.clear_flag("smtp-dkim-signing.configured")
 
     config = hookenv.config()
-    _update_aliases(config.get("admin_email", ""))
+    charm_state = state.State.from_charm(config)
+    _update_aliases(charm_state.admin_email)
 
 
 @reactive.when("smtp-dkim-signing.installed")
@@ -67,12 +69,10 @@ def configure_smtp_dkim_signing(
     reactive.clear_flag("smtp-dkim-signing.milter_notified")
 
     config = hookenv.config()
+    charm_state = state.State.from_charm(config)
 
-    mode = config["mode"]
-    signing_mode = "s" in mode
-
-    keyfile = os.path.join(dkim_keys_dir, f"{os.path.basename(config['selector'])}.private")
-    signing_key = config.get("signing_key", "")
+    keyfile = os.path.join(dkim_keys_dir, f"{os.path.basename(charm_state.selector)}.private")
+    signing_key = charm_state.signing_key
     if signing_key == "auto":
         # With automatic key generation, the leader unit needs to generate
         # and then distribute it out to the peers.
@@ -80,42 +80,51 @@ def configure_smtp_dkim_signing(
         status.blocked("Automatic generation of signing keys not implemented yet")
         return
     if (
-        signing_key
-        and signing_key.startswith("-----BEGIN RSA PRIVATE KEY-----")
-        and signing_key.strip().endswith("-----END RSA PRIVATE KEY-----")
+        charm_state.signing_key
+        and charm_state.signing_key.startswith("-----BEGIN RSA PRIVATE KEY-----")
+        and charm_state.signing_key.strip().endswith("-----END RSA PRIVATE KEY-----")
     ):
         _write_file(signing_key, keyfile)
     # "" means manually provide or provide signing key via other means.
-    elif signing_key != "" and signing_mode:
+    elif charm_state.signing_key and charm_state.signing_mode:
         status.blocked("Invalid signing key provided")
         return
 
     domains = "*"
-    if config.get("domains"):
-        # Support both space and comma-separated list of domains.
-        domains = ",".join(config["domains"].split())
+    if charm_state.domains:
+        domains = ",".join(charm_state.domains)
 
     keytable_path = os.path.join(dkim_keys_dir, "keytable")
-    if config.get("keytable"):
-        contents = JUJU_HEADER + config["keytable"] + "\n"
+    if charm_state.keytable:
+        keytable_contents = "\n".join(
+            [f"{key} {value}" for key, value in charm_state.keytable.items()]
+        ),
+        contents = f"{JUJU_HEADER}{keytable_contents}\n"
         _write_file(contents, keytable_path)
     signingtable_path = os.path.join(dkim_keys_dir, "signingtable")
-    if config.get("signingtable"):
-        contents = JUJU_HEADER + config["signingtable"] + "\n"
+    if charm_state.signingtable:
+        signingtable_contents = "\n".join(
+            [f"{key} {value}" for key, value in charm_state.signingtable.items()]
+        ),
+        contents = f"{JUJU_HEADER}{signingtable_contents}\n"
         _write_file(contents, signingtable_path)
 
+    trusted_sources = ",".join(
+        charm_state.trusted_sources
+    ) if charm_state.trusted_sources else "0.0.0.0/0"
+    
     context = {
         "JUJU_HEADER": JUJU_HEADER,
         "canonicalization": "relaxed/relaxed",
         "domains": domains,
-        "internalhosts": config.get("trusted_sources") or "0.0.0.0/0",
-        "keyfile": os.path.join(OPENDKIM_KEYS_PATH, f"{config['selector']}.private"),
-        "keytable": keytable_path if config.get("keytable") else "",
-        "mode": mode,
-        "selector": config["selector"],
-        "signing_mode": signing_mode,
+        "internalhosts": trusted_sources,
+        "keyfile": os.path.join(OPENDKIM_KEYS_PATH, f"{charm_state.selector}.private"),
+        "keytable": keytable_path if charm_state.keytable else "",
+        "mode": charm_state.mode,
+        "selector": charm_state.selector,
+        "signing_mode": charm_state.signing_mode,
         "signheaders": DEFAULT_SIGN_HEADERS,
-        "signingtable": signingtable_path if config.get("signingtable") else "",
+        "signingtable": signingtable_path if charm_state.signingtable else "",
         "socket": f"inet:{OPENDKIM_MILTER_PORT}",
     }
     base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -193,7 +202,7 @@ def _write_file(source: str, dest_path: str) -> bool:
     return True
 
 
-def _update_aliases(admin_email: str = "", aliases_path: str = "/etc/aliases") -> None:
+def _update_aliases(admin_email: str, aliases_path: str = "/etc/aliases") -> None:
 
     aliases = []
     try:

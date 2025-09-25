@@ -9,11 +9,11 @@ options:
   domains:
     type: string
     description: |
-      Comma or space separated list of sender domain(s) to sign
+      YAML list of sender domain(s) to sign
       messages for (empty will sign messages for all domains).
   keytable:
     type: string
-    description: Key table mapping.
+    description: Key table mapping in YAML format.
   mode:
     type: string
     default: 'sv'
@@ -27,13 +27,15 @@ options:
   selector:
     type: string
     default: 'mail'
-    description: |
-      Selector to use when signing messages with DKIM.
+    description: Selector to use when signing messages with DKIM.
+  signing_key:
+    type: string
+    description: The signing key.
   signingtable:
     type: string
-    description: Signing table mapping.
+    description: Signing table mapping in YAML format.
   trusted_sources:
     type: string
     description: |
-      Comma-separated list of networks or hosts considered `trusted`
+      YAML list of networks or hosts considered `trusted`
       to DKIM sign messages (empty will sign for all).
