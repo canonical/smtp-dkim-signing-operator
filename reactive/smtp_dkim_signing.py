@@ -72,7 +72,7 @@ def configure_smtp_dkim_signing(
     signing_mode = "s" in mode
 
     keyfile = os.path.join(dkim_keys_dir, f"{os.path.basename(config['selector'])}.private")
-    signing_key = config.get("signing_key")
+    signing_key = config.get("signing_key", "")
     if signing_key == "auto":
         # With automatic key generation, the leader unit needs to generate
         # and then distribute it out to the peers.

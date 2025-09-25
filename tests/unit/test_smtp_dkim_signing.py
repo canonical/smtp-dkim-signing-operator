@@ -166,7 +166,7 @@ class TestCharm(unittest.TestCase):
         self, relation_set, relation_ids, set_flag, clear_flag
     ):
         opendkim_conf_path = os.path.join(self.tmpdir, "opendkim.conf")
-
+        self.mock_config.return_value["domains"] = None
         relation_ids.return_value = ["milter:32"]
         smtp_dkim_signing.configure_smtp_dkim_signing(opendkim_conf_path)
 
