@@ -14,3 +14,4 @@ jobs:
       juju-channel: 3/stable
       provider: 'lxd'
       pre-run-script: ./tests/integration/setup-integration-tests.sh
+      tmate-debug: true
