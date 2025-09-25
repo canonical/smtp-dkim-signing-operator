@@ -9,6 +9,7 @@ from collections.abc import Generator
 import jubilant
 import pytest
 
+
 @pytest.fixture(scope="module", name="smtp_dkim_signing_charm")
 def smtp_dkim_signing_charm_fixture(pytestconfig: pytest.Config):
     """Get value from parameter charm-file."""
@@ -59,8 +60,8 @@ def deploy_smtp_relay_fixture(
     return smtp_relay_app_name
 
 
-@pytest.fixture(scope="session")
-def juju(request: pytest.FixtureRequest) -> Generator[jubilant.Juju, None, None]:
+@pytest.fixture(scope="session", name="juju")
+def juju_fixture(request: pytest.FixtureRequest) -> Generator[jubilant.Juju, None, None]:
     """Pytest fixture that wraps :meth:`jubilant.with_model`."""
 
     def show_debug_log(juju: jubilant.Juju):

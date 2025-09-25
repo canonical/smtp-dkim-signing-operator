@@ -5,6 +5,9 @@
 
 """Integration tests."""
 
+# pylint: disable=too-many-arguments,too-many-locals
+
+
 import logging
 import pathlib
 import smtplib
@@ -12,6 +15,7 @@ import socket
 import subprocess  # nosec B404
 import tempfile
 import time
+import typing
 
 import jubilant
 import pytest
@@ -20,8 +24,16 @@ import requests
 logger = logging.getLogger(__name__)
 
 
-def generate_opendkim_genkey(domain: str, selector: str) -> (str, str):
-    """Generate dkim txt record and private key for a domain an selector."""
+def generate_opendkim_genkey(domain: str, selector: str) -> typing.Tuple[str, str]:
+    """Generate dkim txt record and private key for a domain an selector.
+
+    Args:
+        domain: Domain for the key.
+        selector: dkim selector for the key.
+
+    Returns:
+        The txt record and the private key.
+    """
     with tempfile.TemporaryDirectory() as tmpdirname:
         logger.info("JAVI TEMPDIR: %s", tmpdirname)
         subprocess.run(  # nosec
@@ -35,7 +47,11 @@ def generate_opendkim_genkey(domain: str, selector: str) -> (str, str):
 
 @pytest.fixture(scope="session", name="machine_ip_address")
 def machine_ip_address_fixture() -> str:
-    """IP address for the machine running the tests."""
+    """IP address for the machine running the tests.
+
+    Returns:
+        The IP address of the current machine.
+    """
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
     ip_address = s.getsockname()[0]
@@ -67,7 +83,9 @@ def test_simple_relay_dkim(
         tf.flush()
         juju.scp(tf.name, f"{dkim_unit}:/tmp/{domain}-{selector}.private")
         juju.exec(
-            f"mv /tmp/{domain}-{selector}.private /etc/dkimkeys/; chown -R opendkim: /etc/dkimkeys/; chmod -R go-rwx /etc/dkimkeys/",
+            f"mv /tmp/{domain}-{selector}.private /etc/dkimkeys/;"
+            "chown -R opendkim: /etc/dkimkeys/;"
+            "chmod -R go-rwx /etc/dkimkeys/",
             unit=dkim_unit,
         )
 
@@ -75,7 +93,8 @@ def test_simple_relay_dkim(
         smtp_dkim_signing_app,
         {
             "selector": selector,
-            "keytable": f"{selector}._domainkey.{domain} {domain}:{selector}:/etc/dkimkeys/{domain}-{selector}.private",
+            "keytable": f"{selector}._domainkey.{domain} "
+            "{domain}:{selector}:/etc/dkimkeys/{domain}-{selector}.private",
             "signingtable": f"*@{domain} {selector}._domainkey.{domain}",
         },
     )
@@ -83,9 +102,7 @@ def test_simple_relay_dkim(
     # The charm does not restart opendkim on changes in the config values. This is a bug.
     juju.exec("systemctl restart opendkim", unit=dkim_unit)
 
-    command_to_put_domain = (
-        f"echo {machine_ip_address} {domain} | sudo tee -a /etc/hosts"
-    )
+    command_to_put_domain = f"echo {machine_ip_address} {domain} | sudo tee -a /etc/hosts"
     juju.exec(machine=unit.machine, command=command_to_put_domain)
 
     juju.config(smtp_relay_app, {"relay_domains": f"- {domain}"})
