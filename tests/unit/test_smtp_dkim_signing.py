@@ -60,14 +60,9 @@ class TestCharm(unittest.TestCase):
         self.mock_config = patcher.start()
         self.addCleanup(patcher.stop)
         self.mock_config.return_value = {
-            "admin_email": "",
             "domains": "myawsomedomain.local",
-            "keytable": "",
             "mode": "sv",
             "selector": "20210622",
-            "signing_key": "",
-            "signingtable": "",
-            "trusted_sources": "",
         }
 
         patcher = mock.patch("charmhelpers.core.hookenv.open_port")
@@ -171,9 +166,8 @@ class TestCharm(unittest.TestCase):
         self, relation_set, relation_ids, set_flag, clear_flag
     ):
         opendkim_conf_path = os.path.join(self.tmpdir, "opendkim.conf")
-
+        self.mock_config.return_value["domains"] = None
         relation_ids.return_value = ["milter:32"]
-        self.mock_config.return_value["domains"] = ""
         smtp_dkim_signing.configure_smtp_dkim_signing(opendkim_conf_path)
 
         with open(opendkim_conf_path, "r", encoding="utf-8") as f:
