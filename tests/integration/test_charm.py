@@ -109,6 +109,7 @@ def test_simple_relay_dkim(
         lambda status: status.apps[smtp_relay_app].is_active,
         error=jubilant.any_blocked,
         timeout=6 * 60,
+        delay=10,
     )
 
     mailcatcher_url = "http://127.0.0.1:1080/messages"
