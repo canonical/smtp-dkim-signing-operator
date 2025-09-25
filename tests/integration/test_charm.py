@@ -35,7 +35,6 @@ def generate_opendkim_genkey(domain: str, selector: str) -> typing.Tuple[str, st
         The txt record and the private key.
     """
     with tempfile.TemporaryDirectory() as tmpdirname:
-        logger.info("JAVI TEMPDIR: %s", tmpdirname)
         subprocess.run(  # nosec
             ["opendkim-genkey", "-s", selector, "-d", domain], check=True, cwd=tmpdirname
         )
