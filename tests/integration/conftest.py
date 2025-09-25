@@ -36,7 +36,7 @@ def deploy_smtp_dkim_signing_fixture(
     juju.wait(
         lambda status: status.apps[deploy_smtp_dkim_signing_name].is_active,
         error=jubilant.any_blocked,
-        timeout=15 * 60,
+        timeout=10 * 60,
     )
     return deploy_smtp_dkim_signing_name
 
