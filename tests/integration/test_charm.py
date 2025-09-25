@@ -93,7 +93,7 @@ def test_simple_relay_dkim(
         {
             "selector": selector,
             "keytable": f"{selector}._domainkey.{domain} "
-            "{domain}:{selector}:/etc/dkimkeys/{domain}-{selector}.private",
+            f"{domain}:{selector}:/etc/dkimkeys/{domain}-{selector}.private",
             "signingtable": f"*@{domain} {selector}._domainkey.{domain}",
         },
     )
