@@ -54,7 +54,7 @@ def config_changed() -> None:
     reactive.clear_flag("smtp-dkim-signing.configured")
 
     config = hookenv.config()
-    _update_aliases(config["admin_email"])
+    _update_aliases(config.get("admin_email", ""))
 
 
 @reactive.when("smtp-dkim-signing.installed")
@@ -72,14 +72,14 @@ def configure_smtp_dkim_signing(
     signing_mode = "s" in mode
 
     keyfile = os.path.join(dkim_keys_dir, f"{os.path.basename(config['selector'])}.private")
-    signing_key = config.get("signing_key", "")
+    signing_key = config.get("signing_key")
     if signing_key == "auto":
         # With automatic key generation, the leader unit needs to generate
         # and then distribute it out to the peers.
         #   $ opendkim-genkey -t -s $SELECTOR -d $DOMAIN
         status.blocked("Automatic generation of signing keys not implemented yet")
         return
-    if signing_key.startswith("-----BEGIN RSA PRIVATE KEY-----") and signing_key.strip().endswith(
+    if signing_key and signing_key.startswith("-----BEGIN RSA PRIVATE KEY-----") and signing_key.strip().endswith(
         "-----END RSA PRIVATE KEY-----"
     ):
         _write_file(signing_key, keyfile)
@@ -89,16 +89,16 @@ def configure_smtp_dkim_signing(
         return
 
     domains = "*"
-    if config["domains"]:
+    if config.get("domains"):
         # Support both space and comma-separated list of domains.
         domains = ",".join(config["domains"].split())
 
     keytable_path = os.path.join(dkim_keys_dir, "keytable")
-    if config["keytable"] and not config["keytable"].startswith("MANUAL"):
+    if config.get("keytable"):
         contents = JUJU_HEADER + config["keytable"] + "\n"
         _write_file(contents, keytable_path)
     signingtable_path = os.path.join(dkim_keys_dir, "signingtable")
-    if config["signingtable"] and not config["signingtable"].startswith("MANUAL"):
+    if config.get("signingtable"):
         contents = JUJU_HEADER + config["signingtable"] + "\n"
         _write_file(contents, signingtable_path)
 
@@ -106,14 +106,14 @@ def configure_smtp_dkim_signing(
         "JUJU_HEADER": JUJU_HEADER,
         "canonicalization": "relaxed/relaxed",
         "domains": domains,
-        "internalhosts": config["trusted_sources"] or "0.0.0.0/0",
+        "internalhosts": config.get("trusted_sources") or "0.0.0.0/0",
         "keyfile": os.path.join(OPENDKIM_KEYS_PATH, f"{config['selector']}.private"),
-        "keytable": keytable_path if config["keytable"] else "",
+        "keytable": keytable_path if config.get("keytable") else "",
         "mode": mode,
         "selector": config["selector"],
         "signing_mode": signing_mode,
         "signheaders": DEFAULT_SIGN_HEADERS,
-        "signingtable": signingtable_path if config["signingtable"] else "",
+        "signingtable": signingtable_path if config.get("signingtable") else "",
         "socket": f"inet:{OPENDKIM_MILTER_PORT}",
     }
     base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))

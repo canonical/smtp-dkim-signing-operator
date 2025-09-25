@@ -4,20 +4,16 @@
 options:
   admin_email:
     type: string
-    default: ''
     description: |
       Administrator's email address where root@ emails will go.
   domains:
     type: string
-    default: '*'
     description: |
       Comma or space separated list of sender domain(s) to sign
-      messages for (default '*' will sign messages for all domains).
+      messages for (empty will sign messages for all domains).
   keytable:
     type: string
-    default: ''
-    description: |
-      Key table mapping (use 'MANUAL' to manually manage).
+    description: Key table mapping.
   mode:
     type: string
     default: 'sv'
@@ -35,12 +31,9 @@ options:
       Selector to use when signing messages with DKIM.
   signingtable:
     type: string
-    default: ''
-    description: |
-      Signing table mapping (use 'MANUAL' to manually manage).
+    description: Signing table mapping.
   trusted_sources:
     type: string
-    default: ''
     description: |
       Comma-separated list of networks or hosts considered `trusted`
-      to DKIM sign messages (default '' will sign for all).
+      to DKIM sign messages (empty will sign for all).
