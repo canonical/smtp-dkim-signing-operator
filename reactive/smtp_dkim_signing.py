@@ -79,8 +79,10 @@ def configure_smtp_dkim_signing(
         #   $ opendkim-genkey -t -s $SELECTOR -d $DOMAIN
         status.blocked("Automatic generation of signing keys not implemented yet")
         return
-    if signing_key and signing_key.startswith("-----BEGIN RSA PRIVATE KEY-----") and signing_key.strip().endswith(
-        "-----END RSA PRIVATE KEY-----"
+    if (
+        signing_key
+        and signing_key.startswith("-----BEGIN RSA PRIVATE KEY-----")
+        and signing_key.strip().endswith("-----END RSA PRIVATE KEY-----")
     ):
         _write_file(signing_key, keyfile)
     # "" means manually provide or provide signing key via other means.
