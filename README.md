@@ -46,12 +46,12 @@ mv ${selector}.txt ${domain?}-${selector}.txt
 Then copy out the keys:
 
 ```
-units="$(juju status dkim-signing | grep '^dkim-signing/[0-9]*' -o | sort -r)"
+units="$(juju status smtp-dkim-signing | grep '^smtp-dkim-signing/[0-9]*' -o | sort -r)"
 for unit in $units; do
     echo "*** ${unit} ***"
-    juju run --unit ${unit} "sudo -iu ubuntu mkdir -p ~ubuntu/opendkim-keys; chmod go-rwx ~ubuntu/opendkim-keys"
+    juju exec --unit ${unit} "sudo -iu ubuntu mkdir -p ~ubuntu/opendkim-keys; chmod go-rwx ~ubuntu/opendkim-keys"
     juju scp ${domain?}-${selector}.private ${unit}:opendkim-keys/
-    juju run --unit ${unit} "mv ~ubuntu/opendkim-keys/*.private /etc/dkimkeys/; chown -R opendkim: /etc/dkimkeys/; chmod -R go-rwx /etc/dkimkeys/"
+    juju exec --unit ${unit} "mv ~ubuntu/opendkim-keys/*.private /etc/dkimkeys/; chown -R opendkim: /etc/dkimkeys/; chmod -R go-rwx /etc/dkimkeys/"
 done
 ```
 TODO: Include config option or action to copy/push these keys out.
