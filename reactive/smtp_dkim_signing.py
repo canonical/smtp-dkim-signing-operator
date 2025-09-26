@@ -86,7 +86,7 @@ def configure_smtp_dkim_signing(
     ):
         _write_file(signing_key, keyfile)
     # "" means manually provide or provide signing key via other means.
-    elif charm_state.signing_key and charm_state.signing_mode:
+    elif charm_state.signing_key and charm_state.signing_enabled:
         status.blocked("Invalid signing key provided")
         return
 
@@ -103,10 +103,7 @@ def configure_smtp_dkim_signing(
         contents = JUJU_HEADER + charm_state.signingtable + "\n"
         _write_file(contents, signingtable_path)
 
-    trusted_sources = ",".join(
-        charm_state.trusted_sources
-    ) if charm_state.trusted_sources else "0.0.0.0/0"
-    
+    trusted_sources = ",".join(charm_state.trusted_sources)
     context = {
         "JUJU_HEADER": JUJU_HEADER,
         "canonicalization": "relaxed/relaxed",
@@ -116,7 +113,7 @@ def configure_smtp_dkim_signing(
         "keytable": keytable_path if charm_state.keytable else "",
         "mode": charm_state.mode,
         "selector": charm_state.selector,
-        "signing_mode": charm_state.signing_mode,
+        "signing_enabled": charm_state.signing_enabled,
         "signheaders": DEFAULT_SIGN_HEADERS,
         "signingtable": signingtable_path if charm_state.signingtable else "",
         "socket": f"inet:{OPENDKIM_MILTER_PORT}",

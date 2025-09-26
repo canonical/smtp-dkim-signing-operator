@@ -67,6 +67,7 @@ class State(BaseModel):  # pylint: disable=too-few-public-methods,too-many-insta
         keytable: Map that associates selectors to domains.
         mode: Operating mode.
         selector: Selector to use when signing messages with DKIM.
+        signing_enabled: if the charm behaves like a signer.
         signing_key: the signing key.
         signingtable: Map that associates private keys to domains.
         trusted_sources: List of networks or hosts trusted to sign messages.
@@ -82,8 +83,8 @@ class State(BaseModel):  # pylint: disable=too-few-public-methods,too-many-insta
     trusted_sources: list[str]
 
     @property
-    def signing_mode(self) -> bool:
-        """The charm behaves as signer."""
+    def signing_enabled(self) -> bool:
+        """If the charm behaves as signer."""
         return "s" in self.mode
 
     @classmethod
@@ -111,7 +112,7 @@ class State(BaseModel):  # pylint: disable=too-few-public-methods,too-many-insta
                 selector=config.get("selector"),
                 signing_key=config.get("signing_key"),
                 signingtable=config.get("signingtable"),
-                trusted_sources=trusted_sources,
+                trusted_sources=trusted_sources if trusted_sources else ["0.0.0.0/0"],
             )
 
         except ValueError as exc:
