@@ -96,17 +96,11 @@ def configure_smtp_dkim_signing(
 
     keytable_path = os.path.join(dkim_keys_dir, "keytable")
     if charm_state.keytable:
-        keytable_contents = "\n".join(
-            [f"{key} {value}" for key, value in charm_state.keytable.items()]
-        ),
-        contents = f"{JUJU_HEADER}{keytable_contents}\n"
+        contents = JUJU_HEADER + charm_state.keytable + "\n"
         _write_file(contents, keytable_path)
     signingtable_path = os.path.join(dkim_keys_dir, "signingtable")
     if charm_state.signingtable:
-        signingtable_contents = "\n".join(
-            [f"{key} {value}" for key, value in charm_state.signingtable.items()]
-        ),
-        contents = f"{JUJU_HEADER}{signingtable_contents}\n"
+        contents = JUJU_HEADER + charm_state.signingtable + "\n"
         _write_file(contents, signingtable_path)
 
     trusted_sources = ",".join(

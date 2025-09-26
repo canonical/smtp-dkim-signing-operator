@@ -6,7 +6,6 @@ import itertools
 import logging
 from typing import Any
 
-import yaml
 from pydantic import (
     BaseModel,
     EmailStr,
@@ -47,15 +46,6 @@ class ConfigurationError(CharmStateBaseError):
         self.msg = msg
 
 
-def _parse_map(raw_map: str | None) -> dict[str, str]:
-    """Parse map input.
-
-    Returns:
-        the parsed map.
-    """
-    return yaml.safe_load(raw_map) if raw_map else {}
-
-
 def _parse_list(raw_list: str | None) -> list[str]:
     """Parse list input.
 
@@ -65,7 +55,7 @@ def _parse_list(raw_list: str | None) -> list[str]:
     Returns:
         a list of strings.
     """
-    return yaml.safe_load(raw_list) if raw_list else []
+    return raw_list.split(",") if raw_list else []
 
 
 class State(BaseModel):  # pylint: disable=too-few-public-methods,too-many-instance-attributes
@@ -84,11 +74,11 @@ class State(BaseModel):  # pylint: disable=too-few-public-methods,too-many-insta
 
     admin_email: EmailStr | None
     domains: list[str] = list[Annotated[str, Field(pattern=rf"^(?:$|{HOSTNAME_REGEX})$")]]
-    keytable: dict[str, str]
+    keytable: str | None
     mode: str = Field(pattern=MODE_REGEX)
     selector: str
-    signing_key: str
-    signingtable: dict[str, str]
+    signing_key: str | None
+    signingtable: str | None
     trusted_sources: list[str]
 
     @property
@@ -111,18 +101,16 @@ class State(BaseModel):  # pylint: disable=too-few-public-methods,too-many-insta
         """
         try:
             domains = _parse_list(config.get("domains"))
-            keytable = _parse_map(config.get("keytable"))
-            signingtable = _parse_map(config.get("signingtable"))
             trusted_sources = _parse_list(config.get("trusted_sources"))
 
             return cls(
                 admin_email=config.get("admin_email"),
                 domains=domains,
-                keytable=keytable,
+                keytable=config.get("keytable"),
                 mode=config.get("mode"),
                 selector=config.get("selector"),
                 signing_key=config.get("signing_key"),
-                signingtable=signingtable,
+                signingtable=config.get("signingtable"),
                 trusted_sources=trusted_sources,
             )
 

@@ -60,7 +60,7 @@ class TestCharm(unittest.TestCase):
         self.mock_config = patcher.start()
         self.addCleanup(patcher.stop)
         self.mock_config.return_value = {
-            "domains": "- myawsomedomain.local",
+            "domains": "myawsomedomain.local",
             "mode": "sv",
             "selector": "20210622",
         }
@@ -186,11 +186,9 @@ class TestCharm(unittest.TestCase):
         opendkim_conf_path = os.path.join(self.tmpdir, "opendkim.conf")
 
         relation_ids.return_value = ["milter:32"]
-        self.mock_config.return_value["domains"] = """
-            - mydomain1.local
-            - mydomain2.local
-            - mydomain3.local
-        """
+        self.mock_config.return_value["domains"] = (
+            "mydomain1.local,mydomain2.local,mydomain3.local"
+        )
         smtp_dkim_signing.configure_smtp_dkim_signing(opendkim_conf_path)
 
         with open(opendkim_conf_path, "r", encoding="utf-8") as f:
@@ -277,9 +275,7 @@ class TestCharm(unittest.TestCase):
         relation_ids.return_value = ["milter:32"]
         with open("tests/unit/files/keytable", "r", encoding="utf-8") as f:
             keytable = f.read()
-        self.mock_config.return_value["keytable"] = (
-            "'mail._domainkey.myawsomedomain.local':'myawsomedomain.local:mail:/etc/dkimkeys/mail.private'"
-        )
+        self.mock_config.return_value["keytable"] = keytable
         smtp_dkim_signing.configure_smtp_dkim_signing(opendkim_conf_path, self.tmpdir)
         with open(opendkim_conf_path, "r", encoding="utf-8") as f:
             got = f.read()
@@ -332,14 +328,10 @@ class TestCharm(unittest.TestCase):
         relation_ids.return_value = ["milter:32"]
         with open("tests/unit/files/keytable", "r", encoding="utf-8") as f:
             keytable = f.read()
-        self.mock_config.return_value["keytable"] = (
-            "'mail._domainkey.myawsomedomain.local':'myawsomedomain.local:mail:/etc/dkimkeys/mail.private'"
-        )
+        self.mock_config.return_value["keytable"] = keytable
         with open("tests/unit/files/signingtable", "r", encoding="utf-8") as f:
             signingtable = f.read()
-        self.mock_config.return_value["signingtable"] = (
-            "'*@mydomain.local':'mail._domainkey.mydomain.local'"
-        )
+        self.mock_config.return_value["signingtable"] = signingtable
         smtp_dkim_signing.configure_smtp_dkim_signing(opendkim_conf_path, self.tmpdir)
         with open(opendkim_conf_path, "r", encoding="utf-8") as f:
             got = f.read()
