@@ -88,6 +88,7 @@ def juju_fixture(request: pytest.FixtureRequest) -> Generator[jubilant.Juju, Non
     keep_models = typing.cast(bool, request.config.getoption("--keep-models"))
     with jubilant.temp_model(keep=keep_models) as juju:
         juju.wait_timeout = 10 * 60
+        juju.model_config({"automatically-retry-hooks": True})
         yield juju
         show_debug_log(juju)
         return
