@@ -2,6 +2,7 @@
 # See LICENSE file for licensing details.
 
 """Charm state."""
+
 import itertools
 import logging
 from typing import Any
