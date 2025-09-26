@@ -7,6 +7,7 @@ import pytest
 
 from reactive import state
 
+
 @pytest.mark.parametrize(
     "charm_config",
     [
@@ -20,7 +21,7 @@ from reactive import state
         (
             {
                 "admin_email": "sample@email.com",
-                "domains": "exaple.com,example2.com",
+                "domains": "example.com,example2.com",
                 "mode": "v",
                 "selector": "mail",
                 "signing_key": "validkey",
@@ -31,7 +32,7 @@ from reactive import state
         (
             {
                 "admin_email": "sample@email.com",
-                "domains": "exaple.com",
+                "domains": "example.com",
                 "mode": "sv",
                 "selector": "other",
                 "signing_key": "validkey",
@@ -59,7 +60,9 @@ def test_valid_state(charm_config):
     assert charm_state.signing_key == charm_config.get("signing_key")
     assert charm_state.signingtable == charm_config.get("signingtable")
     assert charm_state.trusted_sources == (
-        charm_config.get("trusted_sources").split(",") if charm_config.get("trusted_sources") else ["0.0.0.0/0"]
+        charm_config.get("trusted_sources").split(",")
+        if charm_config.get("trusted_sources")
+        else ["0.0.0.0/0"]
     )
 
 
@@ -125,7 +128,7 @@ def test_invalid_state(charm_config):
         ),
     ],
 )
-def signing_enabled(charm_config):
+def test_signing_enabled(charm_config):
     """
     arrange: instantiate the state".
     act: do nothing.

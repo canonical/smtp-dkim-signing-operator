@@ -12,6 +12,7 @@ import jinja2
 from charmhelpers.core import hookenv, host
 from charms import reactive
 from charms.layer import status
+
 from reactive import state
 
 JUJU_HEADER = "# This file is Juju managed - do not edit by hand #\n\n"
@@ -84,6 +85,7 @@ def configure_smtp_dkim_signing(
         and charm_state.signing_key.startswith("-----BEGIN RSA PRIVATE KEY-----")
         and charm_state.signing_key.strip().endswith("-----END RSA PRIVATE KEY-----")
     ):
+        assert signing_key
         _write_file(signing_key, keyfile)
     # "" means manually provide or provide signing key via other means.
     elif charm_state.signing_key and charm_state.signing_enabled:
@@ -193,7 +195,7 @@ def _write_file(source: str, dest_path: str) -> bool:
     return True
 
 
-def _update_aliases(admin_email: str, aliases_path: str = "/etc/aliases") -> None:
+def _update_aliases(admin_email: str | None, aliases_path: str = "/etc/aliases") -> None:
 
     aliases = []
     try:
