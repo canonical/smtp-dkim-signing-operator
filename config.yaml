@@ -9,7 +9,7 @@ options:
   domains:
     type: string
     description: |
-      Comma or space separated list of sender domain(s) to sign
+      Comma-separated list of sender domain(s) to sign
       messages for (empty will sign messages for all domains).
   keytable:
     type: string

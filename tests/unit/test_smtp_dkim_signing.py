@@ -187,7 +187,7 @@ class TestCharm(unittest.TestCase):
 
         relation_ids.return_value = ["milter:32"]
         self.mock_config.return_value["domains"] = (
-            "mydomain1.local mydomain2.local,mydomain3.local"
+            "mydomain1.local,mydomain2.local,mydomain3.local"
         )
         smtp_dkim_signing.configure_smtp_dkim_signing(opendkim_conf_path)
 
