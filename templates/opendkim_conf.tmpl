@@ -10,7 +10,7 @@ SyslogSuccess yes
 LogResults yes
 LogWhy yes
 
-{%- if signing_mode %}
+{%- if signing_enabled %}
 
 Domain {{domains}}
 KeyFile {{keyfile}}

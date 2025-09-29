@@ -65,6 +65,11 @@ def juju_fixture(request: pytest.FixtureRequest) -> Generator[jubilant.Juju, Non
     """Pytest fixture that wraps :meth:`jubilant.with_model`."""
 
     def show_debug_log(juju: jubilant.Juju):
+        """Show the debug log.
+
+        Args:
+            juju: the Juju client.
+        """
         if request.session.testsfailed:
             log = juju.debug_log(limit=1000)
             print(log, end="")
