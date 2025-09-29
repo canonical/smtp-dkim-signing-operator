@@ -81,14 +81,13 @@ def configure_smtp_dkim_signing(
         status.blocked("Automatic generation of signing keys not implemented yet")
         return
     if (
-        charm_state.signing_key
-        and charm_state.signing_key.startswith("-----BEGIN RSA PRIVATE KEY-----")
-        and charm_state.signing_key.strip().endswith("-----END RSA PRIVATE KEY-----")
+        signing_key
+        and signing_key.startswith("-----BEGIN RSA PRIVATE KEY-----")
+        and signing_key.strip().endswith("-----END RSA PRIVATE KEY-----")
     ):
-        assert signing_key
         _write_file(signing_key, keyfile)
     # "" means manually provide or provide signing key via other means.
-    elif charm_state.signing_key and charm_state.signing_enabled:
+    elif signing_key and charm_state.signing_enabled:
         status.blocked("Invalid signing key provided")
         return
 

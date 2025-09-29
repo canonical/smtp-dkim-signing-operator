@@ -136,4 +136,4 @@ def test_signing_enabled(charm_config):
     """
     charm_state = state.State.from_charm(config=charm_config)
 
-    assert charm_state.signing_enabled == "s" in charm_config["mode"]
+    assert charm_state.signing_enabled == ("s" in charm_config["mode"])

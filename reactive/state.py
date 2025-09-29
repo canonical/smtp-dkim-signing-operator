@@ -5,6 +5,7 @@
 
 import itertools
 import logging
+import re
 from typing import Any
 
 from pydantic import (
@@ -12,8 +13,9 @@ from pydantic import (
     EmailStr,
     Field,
     ValidationError,
+    ValidationInfo,
+    field_validator,
 )
-from typing_extensions import Annotated
 
 logger = logging.getLogger(__name__)
 
@@ -74,13 +76,33 @@ class State(BaseModel):  # pylint: disable=too-few-public-methods,too-many-insta
     """
 
     admin_email: EmailStr | None
-    domains: list[str] = list[Annotated[str, Field(pattern=rf"^(?:$|{HOSTNAME_REGEX})$")]]
+    domains: list[str]
     keytable: str | None
-    mode: str = Field(pattern=MODE_REGEX)
-    selector: str
     signing_key: str | None
     signingtable: str | None
     trusted_sources: list[str]
+    mode: str = Field(pattern=MODE_REGEX)
+    selector: str = Field(min_length=1)
+
+    @field_validator("domains")
+    @classmethod
+    def validate_domains(cls, domains: list[str], _: ValidationInfo) -> list[str]:
+        """Validate the domains field..
+
+        Args:
+            domains: the list of domains to validate.
+
+        Returns:
+            the list of valid domains.
+
+        Raises:
+            ValueError: if invalid state values are found.
+        """
+        if invalid_domains := [
+            domain for domain in domains if not re.match(HOSTNAME_REGEX, domain)
+        ]:
+            raise ValueError(f"Domains {invalid_domains} contain invalid characters")
+        return domains
 
     @property
     def signing_enabled(self) -> bool:
@@ -108,8 +130,8 @@ class State(BaseModel):  # pylint: disable=too-few-public-methods,too-many-insta
                 admin_email=config.get("admin_email"),
                 domains=domains,
                 keytable=config.get("keytable"),
-                mode=config.get("mode"),
-                selector=config.get("selector"),
+                mode=config.get("mode", ""),
+                selector=config.get("selector", ""),
                 signing_key=config.get("signing_key"),
                 signingtable=config.get("signingtable"),
                 trusted_sources=trusted_sources if trusted_sources else ["0.0.0.0/0"],
